@@ -27,6 +27,8 @@ def download_with_speed(url, custom_tos=None, output=None):
     downloaded_bytes = 0
     displayed_time = 0
     content_length = ''
+    percent = ' ??%'
+    size = 0
 
     # Create a custom urllib3 PoolManager.
     # Needed to set the tos.
@@ -42,6 +44,7 @@ def download_with_speed(url, custom_tos=None, output=None):
         filename = output or os.path.basename(url)
         if 'Content-Length' in response.headers:
             content_length = "/"+response.headers['Content-Length']
+            size=int(response.headers['Content-Length'])
 
         # Open a file for writing
         with open(filename, 'wb') as file:
@@ -50,8 +53,11 @@ def download_with_speed(url, custom_tos=None, output=None):
                 elapsed_time = time.time() - start_time
                 if elapsed_time >= displayed_time:
                     # Print status message
+                    if size > 0:
+                        percent = downloaded_bytes / size *100
+                        percent = f"{percent:3.0f}%"
                     download_speed = downloaded_bytes / elapsed_time
-                    print(f"Downloaded: {downloaded_bytes}{content_length} bytes | Speed: {download_speed:9.2f} bytes/sec", end='\r')
+                    print(f"Downloaded: {downloaded_bytes}{content_length} bytes {percent}| Speed: {download_speed:9.2f} bytes/sec", end='\r')
                     displayed_time = elapsed_time+0.5
 
                 # Write the chunk to the file
